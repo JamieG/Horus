@@ -169,6 +169,7 @@ namespace Horus.Service
                             break;
                     }
 
+                    Console.WriteLine();
                     return new SyncResponse(req, new byte[0]);
                 }
             }
