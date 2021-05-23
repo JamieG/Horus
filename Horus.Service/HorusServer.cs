@@ -24,6 +24,9 @@ namespace Horus.Service
 
     public class HubClient : IDisposable
     {
+        public const byte ESCAPE_BYTE = 0xFE;
+        public const byte FRAME_END_BYTE = 0xFF;
+
         private TcpClient _client;
         private NetworkStream _stream;
 
@@ -61,9 +64,6 @@ namespace Horus.Service
 
         }
 
-        public const byte ESCAPE_BYTE = 43;
-        public const byte FRAME_END_BYTE = 42;
-
         public byte[] EscapePayload(byte[] data)
         {
             int final = data.Length;
@@ -71,24 +71,18 @@ namespace Horus.Service
             for (int i = 0; i < data.Length; i++)
             {
                 if (data[i] == ESCAPE_BYTE || data[i] == FRAME_END_BYTE)
-                {
                     final++;
-                }
             }
 
             if (final == data.Length)
-            {
                 return data;
-            }
 
             var escaped = new byte[final];
 
             for (int sourceIndex = 0, targetIndex = 0;  sourceIndex < data.Length; sourceIndex++, targetIndex++)
             {
                 if (data[sourceIndex] == ESCAPE_BYTE || data[sourceIndex] == FRAME_END_BYTE)
-                {
                     escaped[targetIndex++] = ESCAPE_BYTE;
-                }
 
                 escaped[targetIndex] = data[sourceIndex];
             }

@@ -10,12 +10,10 @@
 byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
 IPAddress ip(192, 168, 0, 120);
 
-const byte ESCAPE_BYTE = 43;
-const byte FRAME_END_BYTE = 42;
+const byte ESCAPE_BYTE = 0xFE;
+const byte FRAME_END_BYTE = 0xFF;
 
-// telnet defaults to port 23
 EthernetServer _server(9001);
-
 EthernetClient _client;
 
 byte _buffer[128];
@@ -26,32 +24,30 @@ void setup()
 {
   Ethernet.begin(mac, ip);
 
-  // Open serial communications and wait for port to open:
+#if _DEBUG
   Serial.begin(115200);
   while (!Serial)
   {
     ; // wait for serial port to connect. Needed for native USB port only
   }
+#endif
 
-  for (byte i = 0; i < 128; i++)
-  {
-    _buffer[i] = 0;
-  }
   _bufferPos = 0;
-
-  // start listening for clients
   _server.begin();
 
+#if _DEBUG
   Serial.println("Server started");
+#endif
 }
 
 void processFrame(int length)
 {
+#if _DEBUG
   Serial.print("Frame length: ");
   Serial.print(length);
   Serial.print(" Cmd: ");
   Serial.println(_buffer[0]);
-
+#endif
   _client.write(1);
 }
 
@@ -69,7 +65,9 @@ void loop()
 
     _client = client;
 
+#if _DEBUG
     Serial.println("Client connected");
+#endif
   }
 
   if (_client)
@@ -93,7 +91,6 @@ void loop()
       }
       else if (data == FRAME_END_BYTE)
       {
-
         if (_escaped)
         {
           // An escaped frame end
@@ -115,7 +112,9 @@ void loop()
 
     if (!_client.connected())
     {
+#if _DEBUG
       Serial.println("Client disconnected");
+#endif
       _client.stop();
     }
   }
