@@ -24,34 +24,35 @@ bool _escaped;
 
 void setup()
 {
-    Ethernet.begin(mac, ip);
+  Ethernet.begin(mac, ip);
 
-    // Open serial communications and wait for port to open:
-    Serial.begin(115200);
-    while (!Serial) {
+  // Open serial communications and wait for port to open:
+  Serial.begin(115200);
+  while (!Serial)
+  {
     ; // wait for serial port to connect. Needed for native USB port only
-    }
+  }
 
-    for (byte i = 0; i < 128; i++) 
-    {
-        _buffer[i] = 0;
-    }
-    _bufferPos = 0;
-    
-    // start listening for clients
-    _server.begin();
+  for (byte i = 0; i < 128; i++)
+  {
+    _buffer[i] = 0;
+  }
+  _bufferPos = 0;
 
-	Serial.println("Server started");
+  // start listening for clients
+  _server.begin();
+
+  Serial.println("Server started");
 }
 
 void processFrame(int length)
 {
-	Serial.print("Frame length: ");
-	Serial.print(length);
-	Serial.print(" Cmd: ");
-	Serial.println(_buffer[0]);
+  Serial.print("Frame length: ");
+  Serial.print(length);
+  Serial.print(" Cmd: ");
+  Serial.println(_buffer[0]);
 
-	_client.write(1);
+  _client.write(1);
 }
 
 void loop()
@@ -61,57 +62,61 @@ void loop()
 
   if (client)
   {
-    if(_client)
+    if (_client)
     {
       _client.stop();
     }
-  	
-  	_client = client;
 
-  	Serial.println("Client connected");
+    _client = client;
+
+    Serial.println("Client connected");
   }
-	
-  if (_client) 
+
+  if (_client)
   {
-  	if (_client.available() > 0)
+    if (_client.available() > 0)
     {
       int data = _client.read();
 
       if (data == ESCAPE_BYTE)
       {
-      	if (_escaped)
-      	{
-            // An escaped escape
-      		 _buffer[_bufferPos++] = data;
-      		_escaped = false;
-        }
-        else
-        {
-            _escaped = true;
-        }
-      } else if (data == FRAME_END_BYTE) {
-      	
         if (_escaped)
-      	{
-            // An escaped frame end
-			 _buffer[_bufferPos++] = data;
-      		_escaped = false;
+        {
+          // An escaped escape
+          _buffer[_bufferPos++] = data;
+          _escaped = false;
         }
         else
         {
-            // Frame end
-			processFrame(_bufferPos);
-        	_bufferPos = 0;
+          _escaped = true;
         }
-      } else {
-		  _buffer[_bufferPos++] = data;
+      }
+      else if (data == FRAME_END_BYTE)
+      {
+
+        if (_escaped)
+        {
+          // An escaped frame end
+          _buffer[_bufferPos++] = data;
+          _escaped = false;
+        }
+        else
+        {
+          // Frame end
+          processFrame(_bufferPos);
+          _bufferPos = 0;
+        }
+      }
+      else
+      {
+        _buffer[_bufferPos++] = data;
       }
     }
 
     if (!_client.connected())
     {
-        Serial.println("Client disconnected");
-    	_client.stop();
+      Serial.println("Client disconnected");
+      _client.stop();
     }
   }
 }
